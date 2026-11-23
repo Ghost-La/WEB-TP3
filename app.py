@@ -20,6 +20,7 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 app.register_blueprint(bp_comptes)
 app.register_blueprint(bp_collection)
+app.register_blueprint(api.bp_api)
 
 app.config["CHEMIN_VERS_AJOUTS"] = "static/images/ajouts"
 
