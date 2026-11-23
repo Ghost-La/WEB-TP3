@@ -1,0 +1,65 @@
+{% extends "base.jinja" %}
+{% block title %}Ajout{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-4 page-title">Ajouter la carte : {{ carte.nom }}</h1>
+
+<form method="POST"
+      enctype="multipart/form-data"
+      novalidate="novalidate">
+
+    <div class="mb-3">
+        <label class="form-label">État</label>
+        <select name="etat" class="form-select">
+            <option>Presque neuve</option>
+            <option>Légèrement usée</option>
+            <option>Modérément usée</option>
+            <option>Très usée</option>
+            <option>Abîmée</option>
+        </select>
+        {% if erreurs.etat %}<div class="text-danger">{{ erreurs.etat }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Coût</label>
+        <input type="number" name="cout" class="form-control" value="0">
+        {% if erreurs.cout %}<div class="text-danger">{{ erreurs.cout }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Statut</label>
+        <select name="statut" class="form-select">
+            <option>Disponible</option>
+            <option>Recherchée</option>
+        </select>
+        {% if erreurs.statut %}<div class="text-danger">{{ erreurs.statut }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+
+    <label class="form-label">
+        Photo
+    </label>
+
+    <input
+        type="file"
+        name="photo"
+        class="form-control">
+
+    {% if erreurs.photo %}
+    <div class="text-danger">
+        {{ erreurs.photo }}
+    </div>
+    {% endif %}
+
+</div>
+
+    <button type="submit" class="btn btn-warning btn-sm">
+        Ajouter à la collection
+    </button>
+    <a href="{{ url_for('collection.recherche') }}" class="btn btn-secondary">Annuler</a>
+
+</form>
+
+{% endblock %}

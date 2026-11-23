@@ -1,0 +1,26 @@
+{% extends "base.jinja" %}
+{% block title %}Faire une offre{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Faire une offre</h1>
+
+<p>
+    Carte : <strong>{{ carte.nom }}</strong><br>
+    Cout affiche : <strong>{{ carte.cout }} $</strong>
+</p>
+
+<form method="POST" action="" novalidate>
+    <div class="mb-3">
+        <label class="form-label" for="montant">Montant offert ($)</label>
+        <input type="number" name="montant" id="montant" step="0.01" min="0.01"
+               value="{{ montant }}"
+               class="form-control {% if erreurs.montant %}is-invalid{% endif %}">
+        {% if erreurs.montant %}
+        <div class="invalid-feedback">{{ erreurs.montant }}</div>
+        {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-success">Envoyer l'offre</button>
+    <a href="{{ url_for('collection.collection') }}" class="btn btn-secondary">Annuler</a>
+</form>
+{% endblock %}

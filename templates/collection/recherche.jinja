@@ -1,0 +1,84 @@
+{% extends "base.jinja" %}
+
+{% block title %}Recherche{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-4 page-title">
+    Rechercher une carte Pokémon
+</h1>
+
+<form method="POST" action="{{ url_for('collection.recherche') }}" class="mb-5" novalidate="novalidate">
+
+    <div class="mb-3">
+        <label class="form-label" for="nom">
+            Nom de la carte
+        </label>
+
+        <input type="text" name="nom" id="nom" class="form-control" {% if erreur and not cartes %}is-invalid{% endif %}
+            value="{{ nom|default('') }}" placeholder="Ex: Pikachu, Charizard...">
+
+        {% if erreur %}
+        <div class="invalid-feedback d-block">
+            {{ erreur }}
+        </div>
+        {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Rechercher
+    </button>
+
+</form>
+
+{% if cartes %}
+
+<div class="row row-cols-1 row-cols-md-3 g-4 mt-4">
+
+    {% for carte in cartes %}
+
+    <div class="col">
+        <div class="card shadow-sm h-100">
+
+            <img src="{{ url_for(
+                            'static',
+                            filename='image/pikachu.jpg'
+                        ) }}" class="card-img-top" alt="{{ carte.nom }}">
+
+            <div class="card-body d-flex flex-column">
+
+                <h5 class="card-title">
+                    {{ carte.nom }}
+                </h5>
+
+                <p class="card-text">
+                    <strong>Type :</strong>
+                    {{ carte.supertype }}
+
+                    <br>
+
+                    <strong>Rareté :</strong>
+                    {{ carte.rarete }}
+                </p>
+
+                {% if "id" in session %}
+                <a href="{{ url_for('collection.ajout_carte',id_carte=carte.id) }}" class="btn btn-success btn-sm">
+
+                    Ajouter à la collection
+
+                </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+    </div>
+
+    {% endfor %}
+
+</div>
+
+{% endif %}
+
+{% endblock %}

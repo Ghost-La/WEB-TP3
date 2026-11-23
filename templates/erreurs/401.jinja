@@ -1,0 +1,21 @@
+{% extends "base.jinja" %}
+
+{% block title %}
+Authentification requise
+{% endblock %}
+
+{% block content %}
+
+<h1>Authentification requise</h1>
+
+<p>
+Vous devez etre connecte pour acceder a cette page.
+</p>
+
+<p>
+    <a href="{{ url_for('comptes.connexion') }}" class="btn btn-primary">
+        Connexion
+    </a>
+</p>
+
+{% endblock %}

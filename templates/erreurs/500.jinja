@@ -1,0 +1,9 @@
+{% extends "base.jinja" %}
+{% block title %}Erreur 500{% endblock %}
+{% block content %}
+<div class="alert alert-danger">
+    <h4>Erreur serveur</h4>
+    <p>Une erreur interne est survenue (souvent liee a la base de donnees).</p>
+</div>
+<a href="{{ url_for('index') }}" class="btn btn-secondary">Retour a l'accueil</a>
+{% endblock %}

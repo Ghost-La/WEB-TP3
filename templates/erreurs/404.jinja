@@ -1,0 +1,9 @@
+{% extends "base.jinja" %}
+{% block title %}Erreur 404{% endblock %}
+{% block content %}
+<div class="alert alert-warning">
+    <h4>Page ou ressource introuvable</h4>
+    <p>La carte ou la page demandee n'existe pas.</p>
+</div>
+<a href="{{ url_for('index') }}" class="btn btn-secondary">Retour a l'accueil</a>
+{% endblock %}

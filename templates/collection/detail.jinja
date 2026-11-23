@@ -1,0 +1,145 @@
+{% extends "base.jinja" %}
+
+{% block title %}
+Détail
+{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-4">
+    {{ carte.nom }}
+</h1>
+
+<div class="row">
+
+    <div class="col-md-4">
+
+        {% if carte.photo %}
+
+        <img
+            src="{{ url_for(
+                'static',
+                filename='images/ajouts/' + carte.photo
+            ) }}"
+            class="img-fluid"
+            alt="{{ carte.nom }}">
+
+        {% else %}
+
+        <img
+            src="{{ url_for(
+                'static',
+                filename='image/pikachu.jpg'
+            ) }}"
+            class="img-fluid"
+            alt="{{ carte.nom }}">
+
+        {% endif %}
+
+    </div>
+
+    <div class="col-md-8">
+
+        <p>
+
+            <strong>Type :</strong>
+            {{ carte.supertype }}
+            <br>
+
+            <strong>Rareté :</strong>
+            {{ carte.rarete or '—' }}
+            <br>
+
+            <strong>État :</strong>
+            {{ carte.etat }}
+            <br>
+
+            <strong>Coût :</strong>
+            {{ carte.cout }} $
+            <br>
+
+            <strong>Statut :</strong>
+
+            {% if carte.statut == 1 %}
+                Disponible
+            {% else %}
+                Recherchée
+            {% endif %}
+
+            <br>
+
+            <strong>Date d'ajout :</strong>
+            {{ carte.date_ajout }}
+            <br>
+
+            <strong>Propriétaire :</strong>
+            {{ carte.nom_collectionneur }}
+
+        </p>
+
+        <div class="d-flex gap-2 flex-wrap">
+
+            {% if "id" in session and
+                (
+                    carte.id_collectionneur == session["id"]
+                    or session.get("role") == "admin"
+                )
+            %}
+
+            <a
+                href="{{ url_for(
+                    'collection.modification',
+                    id_collection=carte.id
+                ) }}"
+                class="btn btn-warning btn-sm">
+
+                Modifier
+
+            </a>
+
+            <a
+                href="{{ url_for(
+                    'collection.supprimer',
+                    id_collection=carte.id
+                ) }}"
+                class="btn btn-danger btn-sm"
+                onclick="return confirm('Supprimer cette carte ?');">
+
+                Supprimer
+
+            </a>
+
+            {% endif %}
+
+            {% if "id" in session
+                and carte.id_collectionneur != session["id"]
+                and carte.statut == 1 %}
+
+            <a
+                href="{{ url_for(
+                    'collection.faire_offre',
+                    id_collection=carte.id
+                ) }}"
+                class="btn btn-success btn-sm">
+
+                Faire une offre
+
+            </a>
+
+            {% endif %}
+
+            <a
+                href="{{ url_for('collection.collection') }}"
+                class="btn btn-secondary btn-sm">
+
+                Retour
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

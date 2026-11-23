@@ -1,0 +1,152 @@
+{% extends "base.jinja" %}
+
+{% block title %}
+Accueil
+{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-4 page-title">
+    Dernières cartes ajoutées
+</h1>
+
+{% if "id" in session %}
+
+<div class="mb-3">
+
+    <a href="{{ url_for('index', filtre='disponibles') }}"
+       class="btn btn-sm {% if filtre != 'recherchees' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+
+        Disponibles
+
+    </a>
+
+    <a href="{{ url_for('index', filtre='recherchees') }}"
+       class="btn btn-sm {% if filtre == 'recherchees' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+
+        Recherchées
+
+    </a>
+
+</div>
+
+{% endif %}
+
+{% if cartes and cartes|length > 0 %}
+
+<div class="row g-4">
+
+    {% for carte in cartes %}
+
+    <div class="col-12 col-md-6 col-lg-4">
+
+        <div class="poke-card">
+
+            <a href="{{ url_for(
+                'collection.detail',
+                id_collection=carte.id_collection
+            ) }}">
+
+                <div class="card-img-wrap">
+
+                    {% if carte.photo %}
+
+                    <img
+                        src="{{ url_for(
+                            'static',
+                            filename='images/ajouts/' + carte.photo
+                        ) }}"
+                        alt="{{ carte.nom }}">
+
+                    {% else %}
+
+                    <img
+                        src="{{ url_for(
+                            'static',
+                            filename='image/pikachu.jpg'
+                        ) }}"
+                        alt="{{ carte.nom }}">
+
+                    {% endif %}
+
+                </div>
+
+            </a>
+
+            <div class="card-body">
+
+                <h5 class="card-title">
+                    {{ carte.nom }}
+                </h5>
+
+                <p class="card-text">
+
+                    Type : {{ carte.supertype }}
+                    <br>
+
+                    Rareté : {{ carte.rarete }}
+                    <br>
+
+                    Coût : {{ carte.cout }} $
+                    <br>
+
+                    Statut :
+                    {% if carte.statut == 1 %}
+                        Disponible
+                    {% else %}
+                        Recherchée
+                    {% endif %}
+
+                </p>
+
+                <div class="d-flex gap-2 flex-wrap">
+
+                    <a href="{{ url_for(
+                        'collection.detail',
+                        id_collection=carte.id_collection
+                    ) }}"
+                       class="btn btn-primary">
+
+                        Détails
+
+                    </a>
+
+                    {% if "id" in session
+                          and carte.id_collectionneur != session["id"]
+                          and carte.statut == 1 %}
+
+                    <a href="{{ url_for(
+                        'collection.faire_offre',
+                        id_collection=carte.id_collection
+                    ) }}"
+                       class="btn btn-success btn-sm">
+
+                        Faire une offre
+
+                    </a>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+{% else %}
+
+<p class="alert alert-info">
+
+    Aucune carte disponible dans la collection.
+
+</p>
+
+{% endif %}
+
+{% endblock %}

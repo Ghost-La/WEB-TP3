@@ -1,0 +1,40 @@
+{% extends "base.jinja" %}
+{% block title %}Offres en attente{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Offres en attente</h1>
+
+{% if offres and offres|length > 0 %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Carte</th>
+            <th>Acheteur</th>
+            <th>Montant</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for o in offres %}
+        <tr>
+            <td>{{ o.nom_carte }}</td>
+            <td>{{ o.acheteur }}</td>
+            <td>{{ o.montant }} $</td>
+            <td>{{ o.date_offre }}</td>
+            <td>
+                <a href="{{ url_for('collection.accepter_offre', id_offre=o.id_offre) }}"
+                   class="btn btn-sm btn-success"
+                   onclick="return confirm('Accepter cette offre ?');">Accepter</a>
+                <a href="{{ url_for('collection.refuser_offre', id_offre=o.id_offre) }}"
+                   class="btn btn-sm btn-danger"
+                   onclick="return confirm('Refuser cette offre ?');">Refuser</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="alert alert-info">Aucune offre en attente.</div>
+{% endif %}
+{% endblock %}

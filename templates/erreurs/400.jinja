@@ -1,0 +1,9 @@
+{% extends "base.jinja" %}
+{% block title %}Requete invalide{% endblock %}
+{% block content %}
+<div class="alert alert-danger">
+    <h4>Requete invalide (400)</h4>
+    <p>Cette action n'est pas autorisee (ex. offrir sur sa propre carte).</p>
+</div>
+<a href="{{ url_for('index') }}" class="btn btn-secondary">Retour</a>
+{% endblock %}

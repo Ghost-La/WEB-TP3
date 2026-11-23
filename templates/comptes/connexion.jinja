@@ -1,0 +1,54 @@
+{% extends "base.jinja" %}
+
+{% block title %}
+Connexion
+{% endblock %}
+
+{% block content %}
+
+<h1>Connexion</h1>
+
+<form method="POST" action="" novalidate="novalidate">
+
+    <div class="mb-3">
+
+        <label for="courriel" class="form-label">
+            Courriel
+        </label>
+
+        <input id="courriel" name="courriel" type="email" value="{{ courriel }}"
+            class="form-control {{ classe_courriel }}">
+
+        <div class="invalid-feedback">
+            Courriel obligatoire.
+        </div>
+
+    </div>
+
+    <div class="mb-3">
+
+        <label for="mot_de_passe" class="form-label">
+            Mot de passe
+        </label>
+
+        <input id="mot_de_passe" name="mot_de_passe" type="password" class="form-control {{ classe_mot_de_passe }}">
+
+        <div class="invalid-feedback">
+            Mot de passe obligatoire.
+        </div>
+
+    </div>
+
+    {% if erreur_connexion %}
+    <div class="alert alert-danger">
+        Courriel ou mot de passe invalide.
+    </div>
+    {% endif %}
+
+    <button type="submit" class="btn btn-primary">
+        Connexion
+    </button>
+
+</form>
+
+{% endblock %}

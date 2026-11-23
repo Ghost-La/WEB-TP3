@@ -1,0 +1,243 @@
+@use "bootstrap"
+
+:root
+  --poke-red: #EE1515
+  --poke-red-dark: #C41E3A
+  --poke-yellow: #FFCB05
+  --poke-yellow-dark: #E6B800
+  --poke-blue: #3B4CCA
+  --poke-blue-dark: #2A3A9E
+  --poke-dark: #1A1A2E
+  --poke-darker: #0F0F1A
+  --poke-light: #F8F9FC
+  --poke-gray: #6B7280
+  --poke-white: #FFFFFF
+
+
+header
+
+    h1
+        @extend .display-2
+
+    p
+        @extend .lead
+    
+    @extend .pb-4, .py-4
+
+
+section
+    @extend .pb-4
+
+    h4
+        @extend .mb-2
+
+    p
+        @extend .mb-1
+
+
+footer
+    font-size: 90%
+
+
+main > h2
+    @extend .display-5, .pb-4
+
+body 
+  min-height: 100vh
+  display: flex
+  flex-direction: column
+  
+
+table
+    @extend .table
+
+    thead
+        @extend .table-light
+
+.nav-principale
+    .nav
+      gap: 0.35rem
+
+    .nav-link
+      color: rgba(255,255,255,0.9) !important
+      font-weight: 600
+      font-size: 0.95rem
+      padding: 0.5rem 1.1rem !important
+      border-radius: 50px
+      transition: all 0.25s ease
+
+      &:hover,
+      &.active
+        color: var(--poke-dark) !important
+        background: var(--poke-yellow) !important
+        box-shadow: 0 2px 10px rgba(var(--poke-yellow), 0.5)
+
+main
+  flex: 1
+  padding-top: 2rem
+  padding-bottom: 3rem
+
+  > .container
+    max-width: 1200px
+
+.page-title
+  font-size: 2rem
+  font-weight: 800
+  color: var(--poke-dark)
+  margin-bottom: 1.75rem
+  position: relative
+  display: inline-block
+
+  &::after
+    content: ''
+    display: block
+    width: 60%
+    height: 4px
+    background: linear-gradient(90deg, var(--poke-red), var(--poke-yellow))
+    border-radius: 2px
+    margin-top: 0.4rem
+
+.entete-site 
+  width: 100%
+  max-width: none
+  margin: 0
+  padding: 0
+  background: linear-gradient(135deg, #EE1515 0%, #C41E3A 50%, #9B1B1B 100%) !important
+  box-shadow: 0 4px 20px rgba(238, 21, 21, 0.35)
+  top: 0
+  border-bottom: 4px solid #FFCB05
+
+main > .container,
+.container
+  max-width: 1200px
+
+.page-title
+  font-size: 2rem
+  font-weight: 800
+  color: var(--poke-dark)
+  margin-bottom: 1.75rem
+  position: relative
+  display: inline-block
+
+.poke-card
+  background: var(--poke-white)
+  border: none !important
+  border-radius: 16px
+  overflow: hidden
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08)
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)
+  height: 100%
+  display: flex
+  flex-direction: column
+  position: relative
+
+.poke-card::before
+  content: ''
+  position: absolute
+  top: 0
+  left: 0
+  right: 0
+  height: 5px
+  background: linear-gradient(90deg, var(--poke-red), var(--poke-yellow), var(--poke-blue))
+  z-index: 1
+
+
+.poke-card:hover
+  transform: translateY(-8px)
+  box-shadow: 0 12px 30px rgba(238, 21, 21, 0.18)
+
+
+.poke-card .card-img-wrap
+  position: relative
+  overflow: hidden
+  background: linear-gradient(145deg, #f8fafc, #e2e8f0)
+  display: flex
+  align-items: center
+  justify-content: center
+
+
+.poke-card .card-img-wrap img
+  width: 80%
+  height: 100%
+  object-fit: cover
+  transition: transform 0.4s ease
+
+
+.poke-card:hover .card-img-wrap img
+  transform: scale(1.06)
+
+
+.poke-card .card-body
+  padding: 1.25rem
+  flex: 1
+  display: flex
+  flex-direction: column
+
+
+.poke-card .card-title
+  font-size: 1.15rem
+  font-weight: 700
+  color: var(--poke-dark)
+  margin-bottom: 0.6rem
+  line-height: 1.3
+
+.poke-card-detail
+  background: var(--poke-white)
+  border: none !important
+  border-radius: 16px
+  overflow: hidden
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08)
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)
+  display: flex
+  flex-direction: column
+  position: relative
+
+.poke-card-detail::before
+  content: ''
+  position: absolute
+  top: 0
+  left: 0
+  right: 0
+  height: 5px
+  background: linear-gradient(90deg, var(--poke-red), var(--poke-yellow), var(--poke-blue))
+  z-index: 1
+
+
+.poke-card-detail:hover
+  transform: translateY(-8px)
+  box-shadow: 0 12px 30px rgba(238, 21, 21, 0.18)
+
+
+.poke-card-detail .card-img-wrap
+  position: relative
+  overflow: hidden
+  background: linear-gradient(145deg, #f8fafc, #e2e8f0)
+  display: flex
+  align-items: center
+  justify-content: center
+
+
+.poke-card-detail .card-img-wrap img
+  width: 80%
+  height: 100%
+  object-fit: cover
+  transition: transform 0.4s ease
+
+
+.poke-card-detail:hover .card-img-wrap img
+  transform: scale(1.06)
+
+
+.poke-card-detail .card-body
+  padding: 1.25rem
+  flex: 1
+  display: flex
+  flex-direction: column
+
+
+.poke-card-detail .card-title
+  font-size: 1.15rem
+  font-weight: 700
+  color: var(--poke-dark)
+  margin-bottom: 0.6rem
+  line-height: 1.3
