@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 from comptes import bp_comptes
 from collection import bp_collection
-
+from api import bp_api
 import os
 import bd
 
@@ -20,7 +20,7 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 app.register_blueprint(bp_comptes)
 app.register_blueprint(bp_collection)
-app.register_blueprint(api.bp_api)
+app.register_blueprint(bp_api)
 
 app.config["CHEMIN_VERS_AJOUTS"] = "static/images/ajouts"
 
