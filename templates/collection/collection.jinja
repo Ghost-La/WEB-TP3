@@ -5,6 +5,14 @@
 {% block content %}
 
 <h1 class="mb-4 page-title">Collection de cartes</h1>
+<div class="mb-4">
+
+    <input type="search" id="recherche" class="form-control" placeholder="Rechercher une carte">
+
+    <div id="suggestions" class="list-group mt-2">
+    </div>
+
+</div>
 
 {% if cartes and cartes|length > 0 %}
 
@@ -12,7 +20,9 @@
 
     {% for carte in cartes %}
 
-    <div class="col-12 col-md-6 col-lg-4">
+    <div class="col-12 col-md-6 col-lg-4 carte-item" {% if loop.index> 6 %}
+        style="display:none;"
+        {% endif %}>
 
         <div class="poke-card">
 
@@ -22,11 +32,13 @@
 
                     {% if carte.photo %}
 
-                    <img src="{{ url_for('static',filename='images/ajouts/' + carte.photo) }}" class="card-img-top" alt="Carte Pokémon">
+                    <img src="{{ url_for('static',filename='images/ajouts/' + carte.photo) }}" class="card-img-top"
+                        alt="Carte Pokémon">
 
                     {% else %}
 
-                    <img src="{{ url_for( 'static',filename='image/pikachu.jpg') }}" class="card-img-top" alt="Carte Pokémon">
+                    <img src="{{ url_for( 'static',filename='image/pikachu.jpg') }}" class="card-img-top"
+                        alt="Carte Pokémon">
 
                     {% endif %}
 
@@ -101,5 +113,24 @@
 </div>
 
 {% endif %}
+
+{% endblock %}
+{% block scripts %}
+
+<script
+    src="{{ url_for(
+        'static',
+        filename='js/collection.js'
+    ) }}"
+    defer>
+</script>
+
+<script
+    src="{{ url_for(
+        'static',
+        filename='js/defilement.js'
+    ) }}"
+    defer>
+</script>
 
 {% endblock %}
