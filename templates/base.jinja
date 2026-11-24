@@ -121,9 +121,9 @@
         {% endif %}
 
     </footer>
+    <script src="{{ url_for('static', filename='js/utils-ajax.js') }}"></script>
     <script src="{{ url_for('static', filename='js/ajax.js') }}"></script>
-    {% block scripts %}
-    {% endblock %}
+    {% block scripts %}{% endblock %}
 
 </body>
 

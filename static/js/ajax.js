@@ -1,9 +1,12 @@
-// ---------- 1. Local Storage (se souvenir des recherches) ----------
-const CLE = "dernieres_recherches";
+"use strict";
+
+
+let controleurRecherche = null;
+
 
 function getRecherches() {
     try {
-        return JSON.parse(localStorage.getItem(CLE)) || [];
+        return JSON.parse(localStorage.getItem("dernieres_recherches")) || [];
     } catch (e) {
         return [];
     }
@@ -12,255 +15,262 @@ function getRecherches() {
 function sauverRecherche(terme) {
     if (!terme || terme.length < 2) return;
 
-    let liste = getRecherches().filter(function (r) {
-        return r.toLowerCase() !== terme.toLowerCase();
-    });
-    liste.unshift(terme);          // on met la nouvelle en premier
-    liste = liste.slice(0, 8);     // on garde max 8
-    localStorage.setItem(CLE, JSON.stringify(liste));
+    let liste = getRecherches().filter(r => r.toLowerCase() !== terme.toLowerCase());
+    liste.unshift(terme);
+    liste = liste.slice(0, 8);
+    localStorage.setItem("dernieres_recherches", JSON.stringify(liste));
 }
 
 
 // ---------- 2. Suggestions de recherche (accueil) ----------
-function initialiserRecherche(inputId, suggestionsId) {
-    const input = document.getElementById(inputId);
-    const boite = document.getElementById(suggestionsId);
-
+async function faireRecherche() {
+    const input = document.getElementById("recherche-accueil");
+    const boite = document.getElementById("suggestions-accueil");
     if (!input || !boite) return;
 
-    let timer = null;
+    const terme = input.value.trim();
 
-    // Quand on tape
-    input.addEventListener("input", function () {
-        clearTimeout(timer);
-        const texte = input.value.trim();
+    if (terme.length < 2) {
+        boite.innerHTML = "";
+        boite.classList.add("d-none");
+        return;
+    }
 
-        // Moins de 2 caractères → on cache
-        if (texte.length < 2) {
-            boite.innerHTML = "";
+    if (controleurRecherche !== null) {
+        controleurRecherche.abort();
+    }
+    controleurRecherche = new AbortController();
+
+    try {
+        const suggestions = await envoyerRequeteAjax(
+            "/api/suggestions",
+            "GET",
+            { q: terme },
+            controleurRecherche
+        );
+
+        boite.innerHTML = "";
+
+        if (suggestions.length === 0) {
             boite.classList.add("d-none");
             return;
         }
 
-        // On attend 250 ms pour ne pas spammer le serveur
-        timer = setTimeout(function () {
-            fetch("/api/suggestions?q=" + encodeURIComponent(texte))
-                .then(function (reponse) { return reponse.json(); })
-                .then(function (suggestions) {
-                    boite.innerHTML = "";
+        suggestions.forEach(function (nom) {
+            const bouton = document.createElement("button");
+            bouton.type = "button";
+            bouton.className = "list-group-item list-group-item-action";
+            bouton.textContent = nom;
 
-                    if (suggestions.length === 0) {
-                        boite.classList.add("d-none");
-                        return;
-                    }
+            bouton.addEventListener("click", function () {
+                input.value = nom;
+                boite.innerHTML = "";
+                boite.classList.add("d-none");
+                sauverRecherche(nom);
+            });
 
-                    suggestions.forEach(function (nom) {
-                        const bouton = document.createElement("button");
-                        bouton.type = "button";
-                        bouton.className = "list-group-item list-group-item-action";
-                        bouton.textContent = nom;
+            boite.appendChild(bouton);
+        });
 
-                        bouton.addEventListener("click", function () {
-                            input.value = nom;
-                            boite.innerHTML = "";
-                            boite.classList.add("d-none");
-                            sauverRecherche(nom);
-                            // On peut laisser l’utilisateur appuyer sur Entrée
-                            // ou forcer le submit si tu veux :
-                            // input.form.submit();
-                        });
+        boite.classList.remove("d-none");
+        controleurRecherche = null;
 
-                        boite.appendChild(bouton);
-                    });
-
-                    boite.classList.remove("d-none");
-                });
-        }, 250);
-    });
-
-    // Quand on appuie sur Entrée → on sauvegarde
-    input.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-            sauverRecherche(input.value.trim());
+    } catch (err) {
+        if (err.name !== "AbortError") {
+            console.error("Erreur recherche :", err);
         }
-    });
-
-    // Cacher les suggestions si on clique ailleurs
-    document.addEventListener("click", function (e) {
-        if (!input.contains(e.target) && !boite.contains(e.target)) {
-            boite.classList.add("d-none");
-        }
-    });
+    }
 }
 
 
-// ---------- 3. Validation du courriel (création de compte) ----------
-function initialiserValidationCourriel() {
+// ---------- 3. Validation du courriel (blur) ----------
+async function verifierCourriel() {
     const champ = document.getElementById("courriel");
-    const message = document.getElementById("feedback-courriel");
+    const msg = document.getElementById("feedback-courriel");
     const bouton = document.querySelector("form button[type=submit]");
 
     if (!champ) return;
 
-    function verifier() {
-        const courriel = champ.value.trim();
-
-        if (courriel === "") {
-            champ.classList.remove("is-invalid", "is-valid");
-            if (message) message.textContent = "";
-            if (bouton) bouton.disabled = false;
-            return;
-        }
-
-        // Appel AJAX
-        fetch("/api/verifier-courriel?courriel=" + encodeURIComponent(courriel))
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (data.existe) {
-                    // Courriel déjà pris
-                    champ.classList.add("is-invalid");
-                    champ.classList.remove("is-valid");
-                    if (message) {
-                        message.textContent = "Ce courriel existe déjà.";
-                        message.className = "invalid-feedback d-block";
-                    }
-                    if (bouton) bouton.disabled = true;
-                } else {
-                    // Courriel libre
-                    champ.classList.remove("is-invalid");
-                    champ.classList.add("is-valid");
-                    if (message) message.textContent = "";
-                    if (bouton) bouton.disabled = false;
-                }
-            });
+    const valeur = champ.value.trim();
+    if (valeur === "") {
+        champ.classList.remove("is-invalid", "is-valid");
+        if (msg) msg.textContent = "";
+        if (bouton) bouton.disabled = false;
+        return;
     }
 
-    // Quand on quitte le champ
-    champ.addEventListener("blur", verifier);
+    try {
+        const data = await envoyerRequeteAjax(
+            "/api/verifier-courriel",
+            "GET",
+            { courriel: valeur }
+        );
 
-    // Si le champ était invalide, on re-vérifie pendant qu’on tape
-    champ.addEventListener("input", function () {
-        if (champ.classList.contains("is-invalid")) {
-            verifier();
+        if (data.existe) {
+            champ.classList.add("is-invalid");
+            champ.classList.remove("is-valid");
+            if (msg) {
+                msg.textContent = "Ce courriel existe déjà.";
+                msg.className = "invalid-feedback d-block";
+            }
+            if (bouton) bouton.disabled = true;
+        } else {
+            champ.classList.remove("is-invalid");
+            champ.classList.add("is-valid");
+            if (msg) msg.textContent = "";
+            if (bouton) bouton.disabled = false;
         }
-    });
+    } catch (err) {
+        console.error("Erreur validation courriel :", err);
+    }
 }
 
 
-// ---------- 4. Soft delete d’un utilisateur ----------
-function supprimerUtilisateur(id, ligne) {
+// ---------- 4. Soft delete utilisateur ----------
+async function supprimerUtilisateur(id, ligne) {
     if (!confirm("Voulez-vous vraiment supprimer cet utilisateur ?")) {
         return;
     }
 
-    fetch("/api/utilisateurs/" + id, {
-        method: "DELETE"
-    })
-    .then(function (reponse) {
-        if (!reponse.ok) {
-            throw new Error("Erreur " + reponse.status);
-        }
-        return reponse.json();
-    })
-    .then(function () {
-        // On fait disparaître la ligne sans recharger la page
+    try {
+        await envoyerRequeteAjax(
+            "/api/utilisateurs/" + id,
+            "DELETE"
+        );
+
+        // Disparition douce
         ligne.style.transition = "opacity 0.3s";
         ligne.style.opacity = "0";
         setTimeout(function () {
             ligne.remove();
         }, 300);
-    })
-    .catch(function (err) {
+
+    } catch (err) {
         alert("Erreur lors de la suppression : " + err.message);
-    });
+    }
 }
 
 
-// ---------- 5. Infinite scroll + polling (accueil) ----------
-function demarrerAffichageCartes(options) {
-    const conteneur = document.getElementById(options.conteneurId);
-    const loader = document.getElementById(options.loaderId);
+// ---------- 5. Défilement infini + polling (accueil) ----------
 
-    let offset = 0;
-    let enCours = false;
-    let encoreDesCartes = true;
+let offset = 0;
+let enCours = false;
+let fini = false;
+const LIMIT_INITIAL = 6;
+const LIMIT_SUITE = 3;
 
-    function charger(premiereFois) {
-        if (enCours || !encoreDesCartes) return;
-        enCours = true;
+async function chargerCartes(premiereFois) {
+    if (enCours || fini) return;
+    enCours = true;
 
-        if (loader) loader.classList.remove("d-none");
+    const loader = document.getElementById("loader-cartes");
+    if (loader) loader.classList.remove("d-none");
 
-        const limite = premiereFois ? 6 : 3;
-        let url = "/api/cartes?offset=" + offset + "&limit=" + limite;
+    const limite = premiereFois ? LIMIT_INITIAL : LIMIT_SUITE;
 
-        if (options.filtre) {
-            url += "&filtre=" + options.filtre;
+    const filtre = document.body.dataset.filtre || "";
+    const recherche = document.body.dataset.recherche || "";
+
+    const params = {
+        offset: offset,
+        limit: limite
+    };
+    if (filtre) params.filtre = filtre;
+    if (recherche) params.recherche = recherche;
+
+    try {
+        const data = await envoyerRequeteAjax("/api/cartes", "GET", params);
+
+        const conteneur = document.getElementById("liste-cartes");
+        if (premiereFois) {
+            conteneur.innerHTML = "";
         }
-        if (options.recherche) {
-            url += "&recherche=" + encodeURIComponent(options.recherche);
-        }
 
-        fetch(url)
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (premiereFois) {
-                    conteneur.innerHTML = "";
-                }
+        data.cartes.forEach(function (carte) {
+            const photo = carte.photo
+                ? "/static/images/ajouts/" + carte.photo
+                : "/static/image/pikachu.jpg";
 
-                data.cartes.forEach(function (carte) {
-                    const photo = carte.photo
-                        ? "/static/images/ajouts/" + carte.photo
-                        : "/static/image/pikachu.jpg";
+            const div = document.createElement("div");
+            div.className = "col-12 col-md-6 col-lg-4";
+            div.innerHTML = `
+                <div class="poke-card">
+                    <a href="/collection/detail/${carte.id_collection}">
+                        <div class="card-img-wrap">
+                            <img src="${photo}" alt="${carte.nom}">
+                        </div>
+                    </a>
+                    <div class="card-body">
+                        <h5 class="card-title">${carte.nom}</h5>
+                        <p class="card-text">
+                            ${carte.etat || ""} 
+                            ${carte.cout != null ? " · " + carte.cout.toFixed(2) + " $" : ""}
+                        </p>
+                    </div>
+                </div>`;
+            conteneur.appendChild(div);
+        });
 
-                    const html = `
-                        <div class="col-12 col-md-6 col-lg-4">
-                            <div class="poke-card">
-                                <a href="/collection/detail/${carte.id_collection}">
-                                    <div class="card-img-wrap">
-                                        <img src="${photo}" alt="${carte.nom}">
-                                    </div>
-                                </a>
-                                <div class="card-body">
-                                    <h5 class="card-title">${carte.nom}</h5>
-                                    <p class="card-text">
-                                        ${carte.etat || ""} 
-                                        ${carte.cout != null ? " · " + carte.cout.toFixed(2) + " $" : ""}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>`;
-                    conteneur.insertAdjacentHTML("beforeend", html);
-                });
+        offset += data.cartes.length;
+        fini = !data.has_more;
+        enCours = false;
+        if (loader) loader.classList.add("d-none");
 
-                offset += data.cartes.length;
-                encoreDesCartes = data.has_more;
-                enCours = false;
-                if (loader) loader.classList.add("d-none");
-            })
-            .catch(function () {
-                enCours = false;
-                if (loader) loader.classList.add("d-none");
-            });
+    } catch (err) {
+        console.error("Erreur chargement cartes :", err);
+        enCours = false;
+        if (loader) loader.classList.add("d-none");
+    }
+}
+
+function gererDefilement() {
+    if ((window.innerHeight + window.scrollY) >= 0.95 * document.body.offsetHeight) {
+        chargerCartes(false);   // +3 cartes
+    }
+}
+
+
+// ---------- Initialisation ----------
+function initialisation() {
+    // === Recherche ===
+    const inputRecherche = document.getElementById("recherche-accueil");
+    if (inputRecherche) {
+        inputRecherche.addEventListener("input", faireRecherche);
+
+        inputRecherche.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                sauverRecherche(inputRecherche.value.trim());
+            }
+        });
     }
 
-    // Première charge : 6 cartes
-    charger(true);
+    const champCourriel = document.getElementById("courriel");
+    if (champCourriel) {
+        champCourriel.addEventListener("blur", verifierCourriel);
 
-    // Infinite scroll
-    window.addEventListener("scroll", function () {
-        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 400) {
-            charger(false);   // +3 cartes
-        }
-    });
+        champCourriel.addEventListener("input", function () {
+            if (champCourriel.classList.contains("is-invalid")) {
+                verifierCourriel();
+            }
+        });
+    }
 
-    // Polling toutes les 5 secondes
-    setInterval(function () {
-        // On ne recharge que si on est près du haut de la page
-        if (window.scrollY < 200) {
-            offset = 0;
-            encoreDesCartes = true;
-            charger(true);
-        }
-    }, 5000);
+
+    const listeCartes = document.getElementById("liste-cartes");
+    if (listeCartes) {
+
+        chargerCartes(true);
+
+        window.addEventListener("scroll", gererDefilement);
+
+        setInterval(function () {
+            if (window.scrollY < 200) {
+                offset = 0;
+                fini = false;
+                chargerCartes(true);
+            }
+        }, 5000);
+    }
 }
+
+window.addEventListener("load", initialisation);
