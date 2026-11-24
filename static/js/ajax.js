@@ -15,8 +15,8 @@ function sauverRecherche(terme) {
     let liste = getRecherches().filter(function (r) {
         return r.toLowerCase() !== terme.toLowerCase();
     });
-    liste.unshift(terme);          // on met la nouvelle en premier
-    liste = liste.slice(0, 8);     // on garde max 8
+    liste.unshift(terme);          
+    liste = liste.slice(0, 8);     
     localStorage.setItem(CLE, JSON.stringify(liste));
 }
 
@@ -30,19 +30,19 @@ function initialiserRecherche(inputId, suggestionsId) {
 
     let timer = null;
 
-    // Quand on tape
+   
     input.addEventListener("input", function () {
         clearTimeout(timer);
         const texte = input.value.trim();
 
-        // Moins de 2 caractères → on cache
+      
         if (texte.length < 2) {
             boite.innerHTML = "";
             boite.classList.add("d-none");
             return;
         }
 
-        // On attend 250 ms pour ne pas spammer le serveur
+        
         timer = setTimeout(function () {
             fetch("/api/suggestions?q=" + encodeURIComponent(texte))
                 .then(function (reponse) { return reponse.json(); })
@@ -65,9 +65,7 @@ function initialiserRecherche(inputId, suggestionsId) {
                             boite.innerHTML = "";
                             boite.classList.add("d-none");
                             sauverRecherche(nom);
-                            // On peut laisser l’utilisateur appuyer sur Entrée
-                            // ou forcer le submit si tu veux :
-                            // input.form.submit();
+                            
                         });
 
                         boite.appendChild(bouton);
@@ -135,10 +133,10 @@ function initialiserValidationCourriel() {
             });
     }
 
-    // Quand on quitte le champ
+    
     champ.addEventListener("blur", verifier);
 
-    // Si le champ était invalide, on re-vérifie pendant qu’on tape
+    
     champ.addEventListener("input", function () {
         if (champ.classList.contains("is-invalid")) {
             verifier();
@@ -163,7 +161,7 @@ function supprimerUtilisateur(id, ligne) {
         return reponse.json();
     })
     .then(function () {
-        // On fait disparaître la ligne sans recharger la page
+    
         ligne.style.transition = "opacity 0.3s";
         ligne.style.opacity = "0";
         setTimeout(function () {
@@ -175,8 +173,6 @@ function supprimerUtilisateur(id, ligne) {
     });
 }
 
-
-// ---------- 5. Infinite scroll + polling (accueil) ----------
 function demarrerAffichageCartes(options) {
     const conteneur = document.getElementById(options.conteneurId);
     const loader = document.getElementById(options.loaderId);
@@ -244,23 +240,61 @@ function demarrerAffichageCartes(options) {
             });
     }
 
-    // Première charge : 6 cartes
+    
     charger(true);
 
-    // Infinite scroll
     window.addEventListener("scroll", function () {
         if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 400) {
-            charger(false);   // +3 cartes
+            charger(false);   
         }
     });
 
-    // Polling toutes les 5 secondes
+   
     setInterval(function () {
-        // On ne recharge que si on est près du haut de la page
+       
         if (window.scrollY < 200) {
             offset = 0;
             encoreDesCartes = true;
             charger(true);
         }
     }, 5000);
+}
+
+
+{
+     let urlCible = url;
+
+    let body = null;
+    if ((parametres !== null) && (Object.keys(parametres).length > 0)) {
+        const paramStr = new URLSearchParams(parametres);
+        if (methode.toUpperCase() === "GET") {
+            urlCible = `${urlCible}?${paramStr}`;
+        } else {
+            body = paramStr;
+        }
+    }
+
+    const parametresFetch = {
+        method: methode,
+        headers: {
+            "Content-Type": 'application/x-www-form-urlencoded'
+        },
+        body: body,
+        cache: "no-store"
+    }
+
+    if (controleur != null) {
+        parametresFetch["signal"] = controleur.signal
+    }
+
+    const reponse = await fetch(
+        urlCible,
+        parametresFetch
+    );
+
+    if (!reponse.ok) {
+        throw new Error(`${reponse.status} ${reponse.statusText}`)
+    }
+
+    return await reponse.json();
 }

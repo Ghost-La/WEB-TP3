@@ -1,0 +1,17 @@
+{% extends "base.jinja" %}
+{% block title %}Ajout envie{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-4 page-title">Ajouter la carte : {{ carte.nom }}</h1>
+
+<form method="POST" enctype="multipart/form-data" novalidate="novalidate">
+
+    <button type="submit" class="btn btn-warning btn-sm">
+        Ajouter à la collection
+    </button>
+    <a href="{{ url_for('collection.recherche') }}" class="btn btn-secondary">Annuler</a>
+
+</form>
+
+{% endblock %}

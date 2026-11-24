@@ -8,6 +8,7 @@
     Rechercher une carte Pokémon
 </h1>
 
+
 <form method="POST" action="{{ url_for('collection.recherche') }}" class="mb-5" novalidate="novalidate">
 
     <div class="mb-3">
@@ -15,14 +16,21 @@
             Nom de la carte
         </label>
 
-        <input type="text" name="nom" id="nom" class="form-control" {% if erreur and not cartes %}is-invalid{% endif %}
-            value="{{ nom|default('') }}" placeholder="Ex: Pikachu, Charizard...">
 
-        {% if erreur %}
-        <div class="invalid-feedback d-block">
-            {{ erreur }}
+
+        <input type="search" name="nom" id="nom" id="recherche" class="form-control" placeholder="Rechercher une carte"
+            {% if erreur and not cartes %}is-invalid{% endif %}>
+        
+        <div id="suggestions" class="list-group mt-2">
         </div>
-        {% endif %}
+
+    </div>
+
+    {% if erreur %}
+    <div class="invalid-feedback d-block">
+        {{ erreur }}
+    </div>
+    {% endif %}
     </div>
 
     <button type="submit" class="btn btn-primary">
@@ -40,11 +48,6 @@
     <div class="col">
         <div class="card shadow-sm h-100">
 
-            <img src="{{ url_for(
-                            'static',
-                            filename='image/pikachu.jpg'
-                        ) }}" class="card-img-top" alt="{{ carte.nom }}">
-
             <div class="card-body d-flex flex-column">
 
                 <h5 class="card-title">
@@ -60,6 +63,12 @@
                     <strong>Rareté :</strong>
                     {{ carte.rarete }}
                 </p>
+
+                <a href="{{ url_for('api.ajout_envie',id_carte=carte.id) }}" class="btn btn-success btn-sm">
+
+                    Ajouter aux envies
+
+                </a>
 
                 {% if "id" in session %}
                 <a href="{{ url_for('collection.ajout_carte',id_carte=carte.id) }}" class="btn btn-success btn-sm">
@@ -80,5 +89,20 @@
 </div>
 
 {% endif %}
+
+{% endblock %}
+{% block scripts %}
+
+<script src="{{ url_for(
+        'static',
+        filename='js/recherche.js'
+    ) }}" defer>
+    </script>
+
+<script src="{{ url_for(
+        'static',
+        filename='js/defilement.js'
+    ) }}" defer>
+    </script>
 
 {% endblock %}

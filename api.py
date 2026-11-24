@@ -1,5 +1,5 @@
 """API pour les fonctionnalités AJAX et les requêtes côté client."""
-
+from datetime import datetime
 from flask import (
     abort,
     Blueprint,
@@ -210,3 +210,81 @@ def gerer_erreur_http(e):
             "description": e.description
         }
     ), e.code    
+    
+@bp_api.route("/recherche-carte")
+def recherche_carte():
+    mots_cles = request.args.get("mots-cles", default="")
+    
+    with bd.creer_connexion() as conn:
+        cartes = bd.recherche_carte(conn, mots_cles)
+    return jsonify(cartes)    
+
+
+@bp_api.route("ajout-envie/<id_carte>")
+def ajout_envie(id_carte):
+    ''''''
+    """Ajouter une carte aux envies"""
+ 
+    message = {"message": "Carte ajoutée à vos envies"}
+    utilisateur_connecte()
+
+    with bd.creer_connexion() as conn:
+        carte = bd.get_carte_catalogue(conn, id_carte)
+
+    if carte is None:
+        abort(404)
+
+    erreurs = {}
+
+    if request.method == "POST":
+
+        etat = "Presque neuve"
+
+        cout = 0
+
+        statut = "Recherchée"
+            
+
+        nom_photo = None
+
+        photo = request.files.get("photo")
+
+        
+
+        if not erreurs:
+
+            with bd.creer_connexion() as conn:
+
+                bd.ajouter_carte(
+                    conn,
+                    id_carte=id_carte,
+                    id_collectionneur=session["id"],
+                    date_ajout=datetime.now(),
+                    etat=etat,
+                    cout=cout,
+                    statut= statut,
+                    photo=nom_photo
+                )
+
+            flash(
+                "Carte ajoutée à votre collection.",
+                "success"
+            )
+
+            return redirect(
+                url_for("collection.collection"),
+                code=303
+            )
+            return jsonify(message) 
+
+    return render_template(
+        "collection/ajout-envie.jinja",
+        carte=carte,
+        erreurs=erreurs
+    ) 
+    
+   
+
+
+  
+

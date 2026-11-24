@@ -1,48 +1,50 @@
 "use strict";
 
-const cartes =
-    document.querySelectorAll(
-        ".carte-item"
-    );
+let offset = 6;
+let chargement = false;
 
-let visibles = 6;
-
-function gererDefilement()
+async function gererDefilement()
 {
+    if (chargement)
+    {
+        return;
+    }
+
     if (
-        (
-            window.innerHeight +
-            window.scrollY
-        )
-        >=
-        (
-            document.body.offsetHeight *
-            0.95
-        )
+        window.innerHeight +
+        window.scrollY >=
+        document.body.offsetHeight - 100
     )
     {
-        for (
-            let i = visibles;
-            i < visibles + 3 &&
-            i < cartes.length;
-            i++
-        )
-        {
-            cartes[i].style.display =
-                "block";
-        }
+        chargement = true;
 
-        visibles += 3;
+        const reponse =
+            await fetch(
+                "/api/cartes?collection=1&offset="
+                + offset
+                + "&limit=3"
+            );
+
+        const donnees =
+            await reponse.json();
 
         if (
-            visibles >= cartes.length
+            donnees.cartes.length === 0
         )
         {
-            window.removeEventListener(
-                "scroll",
-                gererDefilement
-            );
+            return;
         }
+
+        offset +=
+            donnees.cartes.length;
+
+        // TEMPORAIRE POUR TEST
+
+        console.log(
+            donnees.cartes
+        );
+
+        chargement = false;
     }
 }
 

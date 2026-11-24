@@ -89,11 +89,11 @@ def recherche():
 
         nom = request.form.get("nom", "").strip()
 
-        if len(nom) < 2:
+        if len(nom) < 1:
 
             erreur = (
                 "Le nom doit contenir "
-                "au moins 2 caractères."
+                "au moins 1 caractères."
             )
 
 
