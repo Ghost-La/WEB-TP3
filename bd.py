@@ -73,36 +73,36 @@ def get_carte_catalogue(conn, id_carte):
 
 
 # ---------- Collection ----------
-def get_cartes_collection(conn, id_collectionneur=None, statut=None):
-    """Liste les cartes de la collection (avec filtre optionnel)"""
-    with conn.get_curseur() as curseur:
-        requete = """
-            SELECT
-                ec.id AS id_collection,
-                ec.id_collectionneur,
-                ec.date_ajout,
-                ec.etat,
-                ec.cout,
-                ec.statut,
-                ec.photo,
-                cp.id AS id_carte,
-                cp.nom,
-                cp.supertype,
-                cp.rarete
-            FROM elements_collection ec
-            JOIN carte_pokemon cp ON cp.id = ec.id_carte
-            WHERE 1=1
-        """
-        parametres = ()
-        if id_collectionneur is not None:
-            requete += " AND ec.id_collectionneur = %s"
-            parametres = (id_collectionneur,)
-        if statut is not None:
-            requete += " AND ec.statut = %s"
-            parametres = parametres + (statut,)
-        requete += " ORDER BY ec.date_ajout DESC"
-        curseur.execute(requete, parametres)
-        return curseur.fetchall()
+# def get_cartes_collection(conn, id_collectionneur=None, statut=None):
+#     """Liste les cartes de la collection (avec filtre optionnel)"""
+#     with conn.get_curseur() as curseur:
+#         requete = """
+#             SELECT
+#                 ec.id AS id_collection,
+#                 ec.id_collectionneur,
+#                 ec.date_ajout,
+#                 ec.etat,
+#                 ec.cout,
+#                 ec.statut,
+#                 ec.photo,
+#                 cp.id AS id_carte,
+#                 cp.nom,
+#                 cp.supertype,
+#                 cp.rarete
+#             FROM elements_collection ec
+#             JOIN carte_pokemon cp ON cp.id = ec.id_carte
+#             WHERE 1=1
+#         """
+#         parametres = ()
+#         if id_collectionneur is not None:
+#             requete += " AND ec.id_collectionneur = %s"
+#             parametres = (id_collectionneur,)
+#         if statut is not None:
+#             requete += " AND ec.statut = %s"
+#             parametres = parametres + (statut,)
+#         requete += " ORDER BY ec.date_ajout DESC"
+#         curseur.execute(requete, parametres)
+#         return curseur.fetchall()
 
 
 def get_element_collection(conn, id_collection):
@@ -162,12 +162,6 @@ def changer_collectionneur(conn, id_collection, nouveau_id_collectionneur):
             WHERE id = %s
         """, (nouveau_id_collectionneur, id_collection))
 
-def get_collectionneurs(conn):
-    """Retourne la liste de tous les collectionneurs"""
-    with conn.get_curseur() as curseur:
-        curseur.execute("SELECT id, courriel, credit, role FROM collectionneurs ORDER BY courriel")
-        return curseur.fetchall()
-
 
 def get_utilisateur(conn, identifiant):
     """Retourne les informations d'un utilisateur par son identifiant"""
@@ -181,13 +175,6 @@ def get_courriel_utilisateur(conn, identifiant):
         curseur.execute("SELECT courriel FROM collectionneurs WHERE id=%s", (identifiant,))
         result = curseur.fetchone()
         return result["courriel"] if result else None
-
-
-def get_utilisateur_par_courriel(conn, courriel):
-    """Retourne les informations d'un utilisateur par son courriel"""
-    with conn.get_curseur() as curseur:
-        curseur.execute("SELECT * FROM collectionneurs WHERE courriel=%s", (courriel,))
-        return curseur.fetchone()
 
 
 def ajouter_utilisateur(conn, courriel, mot_de_passe, credit=0, role="collectionneur"):
@@ -281,3 +268,135 @@ def a_des_offres_en_attente(conn, id_elem_collection):
         """, (id_elem_collection,))
         row = curseur.fetchone()
         return row and row["nb"] > 0
+
+# ---------- AJAX / API ----------
+
+def soft_delete_utilisateur(conn, identifiant):
+    """Marque un utilisateur comme supprimé (soft delete)."""
+    with conn.get_curseur() as curseur:
+        curseur.execute(
+            "UPDATE collectionneurs SET supprime = 1 WHERE id = %s",
+            (identifiant,)
+        )
+
+
+def soft_delete_carte(conn, id_collection):
+    """Marque une carte comme supprimée (soft delete)."""
+    with conn.get_curseur() as curseur:
+        curseur.execute(
+            "UPDATE elements_collection SET supprime = 1 WHERE id = %s",
+            (id_collection,)
+        )
+
+
+# --- ADAPTATION DES REQUÊTES EXISTANTES (IGNURER LES SUPPRIMÉS) ---
+
+def get_utilisateur_par_courriel(conn, courriel):
+    """Retourne un utilisateur par son courriel, en ignorant les utilisateurs supprimés."""
+    with conn.get_curseur() as curseur:
+        curseur.execute(
+            """
+            SELECT * FROM collectionneurs
+            WHERE courriel = %s AND (supprime = 0 OR supprime IS NULL)
+            """,
+            (courriel,)
+        )
+        return curseur.fetchone()
+
+
+def get_collectionneurs(conn):
+    """Retourne tous les collectionneurs actifs (non supprimés)."""
+    with conn.get_curseur() as curseur:
+        curseur.execute(
+            """
+            SELECT id, courriel, credit, role
+            FROM collectionneurs
+            WHERE (supprime = 0 OR supprime IS NULL)
+            ORDER BY courriel
+            """
+        )
+        return curseur.fetchall()
+
+
+def get_cartes_collection(conn, id_collectionneur=None, statut=None, offset=0, limit=None):
+    """Liste les cartes de la collection (avec filtre optionnel)"""
+    with conn.get_curseur() as curseur:
+        requete = """
+            SELECT
+                ec.id AS id_collection, ec.id_collectionneur,
+                ec.date_ajout, ec.etat, ec.cout, ec.statut, ec.photo,
+                cp.id AS id_carte, cp.nom, cp.supertype, cp.rarete
+            FROM elements_collection ec
+            JOIN carte_pokemon cp ON cp.id = ec.id_carte
+            WHERE (ec.supprime = 0 OR ec.supprime IS NULL)
+        """
+        params = []
+
+        if id_collectionneur is not None:
+            requete += " AND ec.id_collectionneur = %s"
+            params.append(id_collectionneur)
+
+        if statut is not None:
+            requete += " AND ec.statut = %s"
+            params.append(statut)
+
+        requete += " ORDER BY ec.date_ajout DESC"
+
+        if limit is not None:
+            requete += " LIMIT %s OFFSET %s"
+            params.extend([limit, offset])
+
+        curseur.execute(requete, tuple(params))
+        return curseur.fetchall()
+
+
+# --- SUGGESTIONS ET API CARTES ---
+
+def rechercher_suggestions(conn, terme, limite=8):
+    """Retourne des noms de cartes correspondants pour l'autocomplétion."""
+    with conn.get_curseur() as curseur:
+        curseur.execute(
+            """
+            SELECT DISTINCT nom
+            FROM carte_pokemon
+            WHERE nom LIKE %s
+            ORDER BY nom
+            LIMIT %s
+            """,
+            (f"%{terme}%", limite)
+        )
+        return [row["nom"] for row in curseur.fetchall()]
+
+
+def get_cartes_pour_api(conn, filtre=None, id_collectionneur=None, offset=0, limit=6, recherche=None):
+    """Récupère les cartes paginées (infinite scroll + polling)."""
+    with conn.get_curseur() as curseur:
+        requete = """
+            SELECT
+                ec.id AS id_collection, ec.id_collectionneur,
+                ec.date_ajout, ec.etat, ec.cout, ec.statut, ec.photo,
+                cp.id AS id_carte, cp.nom, cp.supertype, cp.rarete
+            FROM elements_collection ec
+            JOIN carte_pokemon cp ON cp.id = ec.id_carte
+            WHERE (ec.supprime = 0 OR ec.supprime IS NULL)
+        """
+        params = []
+
+        if id_collectionneur is not None:
+            requete += " AND ec.id_collectionneur = %s"
+            params.append(id_collectionneur)
+
+        if filtre == "disponibles":
+            requete += " AND ec.statut = 1"
+        elif filtre == "recherchees":
+            requete += " AND ec.statut = 0"
+
+        if recherche and len(recherche) >= 2:
+            requete += " AND cp.nom LIKE %s"
+            params.append(f"%{recherche}%")
+
+        requete += " ORDER BY ec.date_ajout DESC LIMIT %s OFFSET %s"
+        params.extend([limit, offset])
+
+        curseur.execute(requete, tuple(params))
+        return curseur.fetchall()

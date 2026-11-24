@@ -1,4 +1,4 @@
-{% extends "base.jinja" %}
+{# {% extends "base.jinja" %}
 
 {% block title %}
 Créer un compte
@@ -87,4 +87,82 @@ Créer un compte
 
 </form>
 
+{% endblock %} #}
+
+{% extends "base.jinja" %}
+
+{% block title %}Ajouter un utilisateur{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Ajouter un utilisateur</h1>
+
+<form method="POST" action="" novalidate id="form-ajout-user">
+  <div class="mb-3">
+    <label for="courriel" class="form-label">Courriel</label>
+    <input
+      type="email"
+      id="courriel"
+      name="courriel"
+      class="form-control {% if erreurs.courriel %}is-invalid{% endif %}"
+      value="{{ courriel or '' }}"
+      required
+    >
+    <div id="feedback-courriel" class="invalid-feedback"></div>
+    {% if erreurs.courriel %}
+      <div class="invalid-feedback d-block">{{ erreurs.courriel }}</div>
+    {% endif %}
+  </div>
+
+  <div class="mb-3">
+    <label for="mot_de_passe" class="form-label">Mot de passe</label>
+    <input
+      type="password"
+      id="mot_de_passe"
+      name="mot_de_passe"
+      class="form-control {% if erreurs.mot_de_passe %}is-invalid{% endif %}"
+    >
+    {% if erreurs.mot_de_passe %}
+      <div class="invalid-feedback">{{ erreurs.mot_de_passe }}</div>
+    {% endif %}
+  </div>
+
+  <div class="mb-3">
+    <label for="confirmation" class="form-label">Confirmation</label>
+    <input
+      type="password"
+      id="confirmation"
+      name="confirmation"
+      class="form-control {% if erreurs.confirmation %}is-invalid{% endif %}"
+    >
+    {% if erreurs.confirmation %}
+      <div class="invalid-feedback">{{ erreurs.confirmation }}</div>
+    {% endif %}
+  </div>
+
+  <div class="mb-3">
+    <label for="credit" class="form-label">Crédit initial</label>
+    <input
+      type="number"
+      step="0.01"
+      id="credit"
+      name="credit"
+      value="{{ credit or 0 }}"
+      class="form-control {% if erreurs.credit %}is-invalid{% endif %}"
+    >
+    {% if erreurs.credit %}
+      <div class="invalid-feedback">{{ erreurs.credit }}</div>
+    {% endif %}
+  </div>
+
+  <button type="submit" class="btn btn-success">Ajouter</button>
+  <a href="{{ url_for('comptes.liste_utilisateurs') }}" class="btn btn-secondary">Annuler</a>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    initialiserValidationCourriel();
+  });
+</script>
 {% endblock %}

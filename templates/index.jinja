@@ -1,4 +1,4 @@
-{% extends "base.jinja" %}
+{# {% extends "base.jinja" %}
 
 {% block title %}
 Accueil
@@ -15,14 +15,14 @@ Accueil
 <div class="mb-3">
 
     <a href="{{ url_for('index', filtre='disponibles') }}"
-       class="btn btn-sm {% if filtre != 'recherchees' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        class="btn btn-sm {% if filtre != 'recherchees' %}btn-primary{% else %}btn-outline-primary{% endif %}">
 
         Disponibles
 
     </a>
 
     <a href="{{ url_for('index', filtre='recherchees') }}"
-       class="btn btn-sm {% if filtre == 'recherchees' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        class="btn btn-sm {% if filtre == 'recherchees' %}btn-primary{% else %}btn-outline-primary{% endif %}">
 
         Recherchées
 
@@ -51,21 +51,17 @@ Accueil
 
                     {% if carte.photo %}
 
-                    <img
-                        src="{{ url_for(
+                    <img src="{{ url_for(
                             'static',
                             filename='images/ajouts/' + carte.photo
-                        ) }}"
-                        alt="{{ carte.nom }}">
+                        ) }}" alt="{{ carte.nom }}">
 
                     {% else %}
 
-                    <img
-                        src="{{ url_for(
+                    <img src="{{ url_for(
                             'static',
                             filename='image/pikachu.jpg'
-                        ) }}"
-                        alt="{{ carte.nom }}">
+                        ) }}" alt="{{ carte.nom }}">
 
                     {% endif %}
 
@@ -92,9 +88,9 @@ Accueil
 
                     Statut :
                     {% if carte.statut == 1 %}
-                        Disponible
+                    Disponible
                     {% else %}
-                        Recherchée
+                    Recherchée
                     {% endif %}
 
                 </p>
@@ -104,22 +100,20 @@ Accueil
                     <a href="{{ url_for(
                         'collection.detail',
                         id_collection=carte.id_collection
-                    ) }}"
-                       class="btn btn-primary">
+                    ) }}" class="btn btn-primary">
 
                         Détails
 
                     </a>
 
                     {% if "id" in session
-                          and carte.id_collectionneur != session["id"]
-                          and carte.statut == 1 %}
+                    and carte.id_collectionneur != session["id"]
+                    and carte.statut == 1 %}
 
                     <a href="{{ url_for(
                         'collection.faire_offre',
                         id_collection=carte.id_collection
-                    ) }}"
-                       class="btn btn-success btn-sm">
+                    ) }}" class="btn btn-success btn-sm">
 
                         Faire une offre
 
@@ -149,4 +143,70 @@ Accueil
 
 {% endif %}
 
+{% endblock %} #}
+
+{% extends "base.jinja" %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+<h1 class="mb-4 page-title">Dernières cartes ajoutées</h1>
+
+<div class="position-relative mb-4 col-md-6">
+    <form id="form-recherche-accueil" method="get" action="{{ url_for('index') }}">
+        <div class="input-group">
+            <input type="text" id="recherche-accueil" name="q" class="form-control"
+                placeholder="Rechercher une carte (min. 2 caractères)..." autocomplete="off"
+                value="{{ request.args.get('q', '') }}">
+            <button class="btn btn-primary" type="submit">Rechercher</button>
+        </div>
+        <div id="suggestions-accueil" class="list-group position-absolute w-100 d-none"
+            style="z-index: 1050; max-height: 280px; overflow-y: auto;"></div>
+    </form>
+</div>
+
+{% if "id" in session %}
+<div class="mb-3">
+    <a href="{{ url_for('index', filtre='disponibles') }}"
+        class="btn btn-sm {% if filtre != 'recherchees' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        Disponibles
+    </a>
+    <a href="{{ url_for('index', filtre='recherchees') }}"
+        class="btn btn-sm {% if filtre == 'recherchees' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        Recherchées
+    </a>
+</div>
+{% endif %}
+
+<div id="liste-cartes" class="row g-4"></div>
+
+<div id="loader-cartes" class="text-center my-4 d-none">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Chargement...</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        initialiserBarreRecherche(
+            "recherche-accueil",
+            "suggestions-accueil",
+            "form-recherche-accueil"
+        );
+
+        const chargeur = new ChargeurCartes({
+            conteneurId: "liste-cartes",
+            loaderId: "loader-cartes",
+            filtre: "{{ filtre or '' }}",
+            recherche: "{{ request.args.get('q', '') }}",
+            estCollection: false
+        });
+
+        chargeur.charger(true);
+        chargeur.activerInfiniteScroll();
+        chargeur.demarrerPolling(5000);
+    });
+</script>
 {% endblock %}
