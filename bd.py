@@ -64,6 +64,52 @@ def rechercher_cartes(conn, nom):
         """, (f"%{nom}%",))
         return curseur.fetchall()
 
+def rechercher_cartes_collection(
+    conn,
+    nom,
+    id_collectionneur=None
+):
+    """Recherche dans la collection"""
+
+    with conn.get_curseur() as curseur:
+
+        requete = """
+            SELECT
+                ec.id AS id_collection,
+                cp.nom,
+                cp.supertype,
+                cp.rarete
+            FROM elements_collection ec
+            JOIN carte_pokemon cp
+                ON cp.id = ec.id_carte
+            WHERE cp.nom LIKE %s
+        """
+
+        parametres = [
+            f"%{nom}%"
+        ]
+
+        if id_collectionneur is not None:
+
+            requete += """
+                AND ec.id_collectionneur = %s
+            """
+
+            parametres.append(
+                id_collectionneur
+            )
+
+        requete += """
+            ORDER BY cp.nom
+            LIMIT 15
+        """
+
+        curseur.execute(
+            requete,
+            tuple(parametres)
+        )
+
+        return curseur.fetchall()
 
 def get_carte_catalogue(conn, id_carte):
     """Retourne les informations d'une carte du catalogue"""
