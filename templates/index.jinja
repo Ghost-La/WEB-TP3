@@ -38,19 +38,3 @@
     <div class="spinner-border text-primary"></div>
 </div>
 {% endblock %}
-
-{% block scripts %}
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-
-        initialiserRecherche("recherche-accueil", "suggestions-accueil");
-
-        demarrerAffichageCartes({
-            conteneurId: "liste-cartes",
-            loaderId: "loader-cartes",
-            filtre: "{{ filtre or '' }}",
-            recherche: "{{ request.args.get('q', '') }}"
-        });
-    });
-</script>
-{% endblock %}

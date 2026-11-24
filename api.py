@@ -17,15 +17,16 @@ import re
 from werkzeug.exceptions import HTTPException
 from flask import jsonify
 from auth import administrateur
+from collection import ajout_carte
 
 
 bp_api = Blueprint("api", __name__, url_prefix="/api")
 
 @bp_api.route("/suggestions")
 def suggestions():
-    """Retourne des suggestions de noms à partir de 2 caractères."""
+    """Retourne des suggestions de noms à partir de 1 caractères."""
     terme = request.args.get("q", "").strip()
-    if len(terme) < 2:
+    if len(terme) < 3:
         return jsonify([])
 
     with bd.creer_connexion() as conn:
@@ -113,56 +114,56 @@ def supprimer_carte_api(id_collection):
     return jsonify({"succes": True})
 
 
-@bp_api.route("/cartes")
-def liste_cartes_api():
-    """Retourne une page de cartes pour le défilement infini et le polling."""
-    try:
-        offset = int(request.args.get("offset", 0))
-        limit = int(request.args.get("limit", 6))
-    except ValueError:
-        return jsonify({"erreur": "Paramètres invalides"}), 400
+# @bp_api.route("/cartes")
+# def liste_cartes_api():
+#     """Retourne une page de cartes pour le défilement infini et le polling."""
+#     try:
+#         offset = int(request.args.get("offset", 0))
+#         limit = int(request.args.get("limit", 6))
+#     except ValueError:
+#         return jsonify({"erreur": "Paramètres invalides"}), 400
 
-    filtre = request.args.get("filtre")
-    recherche = request.args.get("recherche", "").strip()
-    est_collection = request.args.get("collection") == "1"
+#     filtre = request.args.get("filtre")
+#     recherche = request.args.get("recherche", "").strip()
+#     est_collection = request.args.get("collection") == "1"
 
-    id_collectionneur = None
-    if est_collection:
-        if not est_connecte():
-            return jsonify({"erreur": "Authentification requise"}), 401
-        if session.get("role") != "admin":
-            id_collectionneur = session["id"]
+#     id_collectionneur = None
+#     if est_collection:
+#         if not est_connecte():
+#             return jsonify({"erreur": "Authentification requise"}), 401
+#         if session.get("role") != "admin":
+#             id_collectionneur = session["id"]
 
-    with bd.creer_connexion() as conn:
-        cartes = bd.get_cartes_pour_api(
-            conn,
-            filtre=filtre,
-            id_collectionneur=id_collectionneur,
-            offset=offset,
-            limit=limit,
-            recherche=recherche if len(recherche) >= 2 else None
-        )
+#     with bd.creer_connexion() as conn:
+#         cartes = bd.get_cartes_pour_api(
+#             conn,
+#             filtre=filtre,
+#             id_collectionneur=id_collectionneur,
+#             offset=offset,
+#             limit=limit,
+#             recherche=recherche if len(recherche) >= 1 else None
+#         )
 
-    resultats = []
-    for c in cartes:
-        resultats.append({
-            "id_collection": c["id_collection"],
-            "nom": c["nom"],
-            "supertype": c.get("supertype"),
-            "rarete": c.get("rarete"),
-            "etat": c.get("etat"),
-            "cout": float(c["cout"]) if c.get("cout") is not None else None,
-            "statut": c.get("statut"),
-            "photo": c.get("photo"),
-            "date_ajout": c["date_ajout"].isoformat() if c.get("date_ajout") else None
-        })
+#     resultats = []
+#     for c in cartes:
+#         resultats.append({
+#             "id_collection": c["id_collection"],
+#             "nom": c["nom"],
+#             "supertype": c.get("supertype"),
+#             "rarete": c.get("rarete"),
+#             "etat": c.get("etat"),
+#             "cout": float(c["cout"]) if c.get("cout") is not None else None,
+#             "statut": c.get("statut"),
+#             "photo": c.get("photo"),
+#             "date_ajout": c["date_ajout"].isoformat() if c.get("date_ajout") else None
+#         })
 
-    return jsonify({
-        "cartes": resultats,
-        "offset": offset,
-        "limit": limit,
-        "has_more": len(resultats) == limit
-    })
+#     return jsonify({
+#         "cartes": resultats,
+#         "offset": offset,
+#         "limit": limit,
+#         "has_more": len(resultats) == limit
+#     })
 
 @bp_api.route("/recherche-collection")
 def recherche_collection():
@@ -173,7 +174,6 @@ def recherche_collection():
     return jsonify(cartes)    
 
 @bp_api.route("/valider-offre")
-
 def valider_offre():
     montant = request.args.get("montant", type= float)
     prix = request.args.get("prix", type=float)
@@ -209,4 +209,59 @@ def gerer_erreur_http(e):
             "nom": e.name,
             "description": e.description
         }
-    ), e.code    
+    ), e.code
+
+@bp_api.route("/ajout-envie/<id_carte>")
+def AjouterEnvie():
+
+    if not est_connecte():
+        return jsonify({"valide": False, "message": "Authentification requise"}), 401
+    
+    id = request.args.get("id_carte", "").strip()
+    with bd.creer_connexion() as conn:
+        carte = bd.get_carte(conn, id)
+        if carte is None:
+            return jsonify({"erreur": "Carte introuvable"}), 404
+
+    ajout_carte(carte.id)
+
+    return jsonify({"succes": True})
+
+@bp_api.route("/cartes")
+def liste_cartes_api():
+    """Retourne une page de cartes pour le défilement infini et le polling."""
+    try:
+        offset = int(request.args.get("offset", 0))
+        limit = int(request.args.get("limit", 6))
+    except ValueError:
+        return jsonify({"erreur": "Paramètres invalides"}), 400
+    
+    recherche = request.args.get("recherche", "").strip()
+    
+
+    if not est_connecte():
+        return jsonify({"erreur": "Authentification requise"}), 401
+
+    with bd.creer_connexion() as conn:
+        cartes = bd.get_cartes_pour_api(
+            conn,
+            offset,
+            limit,
+            recherche=recherche if len(recherche) >= 1 else None
+        )
+
+    resultats = []
+    for c in cartes:
+        resultats.append({
+            "id": c.get("id"),
+            "nom": c.get("nom"),
+            "supertype": c.get("supertype"),
+            "rarete": c.get("rarete"),
+            "type":c.get("type"),
+            "illustrateur":c.get("illustrateur"),
+            # "date_ajout": c["date_ajout"].isoformat() if c.get("date_ajout") else None
+        })
+
+    return jsonify({
+        "cartes": resultats
+    })

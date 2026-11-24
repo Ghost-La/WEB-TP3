@@ -1,8 +1,6 @@
 "use strict";
 
-
 let controleurRecherche = null;
-
 
 function getRecherches() {
     try {
@@ -22,7 +20,6 @@ function sauverRecherche(terme) {
 }
 
 
-// ---------- 2. Suggestions de recherche (accueil) ----------
 async function faireRecherche() {
     const input = document.getElementById("recherche-accueil");
     const boite = document.getElementById("suggestions-accueil");
@@ -82,8 +79,6 @@ async function faireRecherche() {
     }
 }
 
-
-// ---------- 3. Validation du courriel (blur) ----------
 async function verifierCourriel() {
     const champ = document.getElementById("courriel");
     const msg = document.getElementById("feedback-courriel");
@@ -125,8 +120,6 @@ async function verifierCourriel() {
     }
 }
 
-
-// ---------- 4. Soft delete utilisateur ----------
 async function supprimerUtilisateur(id, ligne) {
     if (!confirm("Voulez-vous vraiment supprimer cet utilisateur ?")) {
         return;
@@ -150,8 +143,6 @@ async function supprimerUtilisateur(id, ligne) {
     }
 }
 
-
-// ---------- 5. Défilement infini + polling (accueil) ----------
 
 let offset = 0;
 let enCours = false;
@@ -207,6 +198,15 @@ async function chargerCartes(premiereFois) {
                             ${carte.cout != null ? " · " + carte.cout.toFixed(2) + " $" : ""}
                         </p>
                     </div>
+                    <div>
+                        <a
+                            href="api/ajout-envie/${carte.id_carte}"
+                            class="btn btn-success btn-sm">
+
+                            Ajouter aux envies
+
+                        </a>
+                    </div>
                 </div>`;
             conteneur.appendChild(div);
         });
@@ -230,7 +230,6 @@ function gererDefilement() {
 }
 
 
-// ---------- Initialisation ----------
 function initialisation() {
     // === Recherche ===
     const inputRecherche = document.getElementById("recherche-accueil");

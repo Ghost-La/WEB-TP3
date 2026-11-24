@@ -410,34 +410,21 @@ def rechercher_suggestions(conn, terme, limite=8):
         return [row["nom"] for row in curseur.fetchall()]
 
 
-def get_cartes_pour_api(conn, filtre=None, id_collectionneur=None, offset=0, limit=6, recherche=None):
+def get_cartes_pour_api(conn, offset=0, limit=6, recherche=None):
     """Récupère les cartes paginées (infinite scroll + polling)."""
     with conn.get_curseur() as curseur:
         requete = """
-            SELECT
-                ec.id AS id_collection, ec.id_collectionneur,
-                ec.date_ajout, ec.etat, ec.cout, ec.statut, ec.photo,
-                cp.id AS id_carte, cp.nom, cp.supertype, cp.rarete
-            FROM elements_collection ec
-            JOIN carte_pokemon cp ON cp.id = ec.id_carte
-            WHERE (ec.supprime = 0 OR ec.supprime IS NULL)
+            SELECT id, nom, supertype, rarete, types, illustrateur
+                    FROM carte_pokemon
+
         """
         params = []
-
-        if id_collectionneur is not None:
-            requete += " AND ec.id_collectionneur = %s"
-            params.append(id_collectionneur)
-
-        if filtre == "disponibles":
-            requete += " AND ec.statut = 1"
-        elif filtre == "recherchees":
-            requete += " AND ec.statut = 0"
 
         if recherche and len(recherche) >= 2:
             requete += " AND cp.nom LIKE %s"
             params.append(f"%{recherche}%")
 
-        requete += " ORDER BY ec.date_ajout DESC LIMIT %s OFFSET %s"
+        requete += " ORDER BY date_sortie DESC LIMIT %s OFFSET %s"
         params.extend([limit, offset])
 
         curseur.execute(requete, tuple(params))
