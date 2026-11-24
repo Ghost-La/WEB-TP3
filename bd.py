@@ -335,8 +335,6 @@ def soft_delete_carte(conn, id_collection):
         )
 
 
-# --- ADAPTATION DES REQUÊTES EXISTANTES (IGNURER LES SUPPRIMÉS) ---
-
 def get_utilisateur_par_courriel(conn, courriel):
     """Retourne un utilisateur par son courriel, en ignorant les utilisateurs supprimés."""
     with conn.get_curseur() as curseur:
@@ -395,8 +393,6 @@ def get_cartes_collection(conn, id_collectionneur=None, statut=None, offset=0, l
         curseur.execute(requete, tuple(params))
         return curseur.fetchall()
 
-
-# --- SUGGESTIONS ET API CARTES ---
 
 def rechercher_suggestions(conn, terme, limite=8):
     """Retourne des noms de cartes correspondants pour l'autocomplétion."""

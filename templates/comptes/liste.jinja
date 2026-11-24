@@ -61,59 +61,38 @@ Liste des utilisateurs
 <h1 class="mb-4">Utilisateurs</h1>
 
 <a href="{{ url_for('comptes.ajouter_utilisateur') }}" class="btn btn-primary mb-3">
-  Ajouter un utilisateur
+    Ajouter un utilisateur
 </a>
 
 <table class="table table-striped" id="table-utilisateurs">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Courriel</th>
-      <th>Crédit</th>
-      <th>Rôle</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for u in utilisateurs %}
-    <tr data-id="{{ u.id }}">
-      <td>{{ u.id }}</td>
-      <td>{{ u.courriel }}</td>
-      <td>{{ u.credit }}</td>
-      <td>{{ u.role }}</td>
-      <td>
-        {% if u.id != session.id %}
-          <button
-            type="button"
-            class="btn btn-sm btn-danger btn-supprimer-user"
-            data-id="{{ u.id }}"
-          >
-            Supprimer
-          </button>
-        {% else %}
-          <span class="text-muted">-</span>
-        {% endif %}
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Courriel</th>
+            <th>Crédit</th>
+            <th>Rôle</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in utilisateurs %}
+        <tr data-id="{{ u.id }}">
+            <td>{{ u.id }}</td>
+            <td>{{ u.courriel }}</td>
+            <td>{{ u.credit }}</td>
+            <td>{{ u.role }}</td>
+            <td>
+                {% if u.id != session.id %}
+                <button type="button" class="btn btn-sm btn-danger"
+                    onclick="supprimerUtilisateur({{ u.id }}, this.closest('tr'))">
+                    Supprimer
+                </button>
+                {% else %}
+                <span class="text-muted">-</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
-{% endblock %}
-
-{% block scripts %}
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".btn-supprimer-user").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const id = btn.dataset.id;
-        const ligne = btn.closest("tr");
-        softDelete(
-          `/api/utilisateurs/${id}`,
-          ligne,
-          "Confirmer la suppression de cet utilisateur ?"
-        );
-      });
-    });
-  });
-</script>
 {% endblock %}
